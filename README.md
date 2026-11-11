@@ -480,6 +480,7 @@ docker compose -f docker-compose.production.yml --env-file .env.production up -d
 - Put **nginx** or another reverse proxy in front for TLS/SSL termination
 - Open the mediasoup range (`MEDIASOUP_MIN_PORT` to `MEDIASOUP_MAX_PORT`) in your firewall — UDP, plus TCP as a fallback
 - For better reliability, use a managed PostgreSQL instance (change `DATABASE_URL` in `docker-compose.production.yml` — its `environment:` entry takes precedence over `.env.production`)
+- Keep Redis on **`maxmemory-policy noeviction`**: it holds security-sensitive TOTP/replay markers, rate limits, feature flags and locks that must not silently disappear. The example caps Redis data at 256 MB inside a 512 MB container; size both limits for your workload and monitor `used_memory`, `evicted_keys` and Redis OOM/write errors. With `noeviction`, a full instance rejects writes and some rate limiters fail open, so alert well before the limit is reached.
 - Set up regular database backups
 
 ---
